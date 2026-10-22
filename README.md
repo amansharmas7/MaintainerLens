@@ -85,3 +85,34 @@ Do not enter passwords, API keys, connection URLs containing keys, or private re
 ## License
 
 MIT. See LICENSE.
+
+## Demo
+
+MaintainerLens analyzes pasted bug reports or public GitHub issues and generates a triage report.
+
+![MaintainerLens demo](docs/maintainerlens-demo.png)
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A["GitHub issue or pasted report"] --> B["Streamlit dashboard"]
+    B --> C["Python issue processing"]
+    C --> D["GitHub REST API"]
+    C --> E["Ollama API"]
+    E --> F["Gemma 4 Cloud"]
+    F --> G["AI-generated triage report"]
+    G --> B
+    C --> H["Rule-based fallback"]
+    H --> B
+```
+
+## Workflow
+
+1. Provide a public GitHub issue URL or paste issue details.
+2. Retrieve issue metadata when a URL is supplied.
+3. Analyze the report using Gemma 4 Cloud through Ollama.
+4. Review evidence, missing information, priority suggestions, and the drafted maintainer reply.
+5. Download the report as Markdown.
+
+AI suggestions require maintainer review. The application does not automatically post replies or modify repositories.
