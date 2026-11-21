@@ -74,14 +74,22 @@ def build_fallback_report(issue: dict) -> str:
     """Produce a deterministic checklist, never an AI-generated diagnosis."""
     text = (issue.get("title", "") + "\n" + issue.get("body", "")).lower()
     checks = [
-        (("steps to reproduce", "step to reproduce", "reproduction steps"),
-         "Steps to reproduce the problem"),
-        (("error message", "traceback", "exception", "error log", "logs"),
-         "Exact error message or relevant logs"),
-        (("version", "windows", "linux", "macos", "environment"),
-         "Application version and operating environment"),
-        (("expected behavior", "actual behavior", "expected result"),
-         "Expected behavior compared with actual behavior"),
+        (
+            ("steps to reproduce", "step to reproduce", "reproduction steps"),
+            "Steps to reproduce the problem",
+        ),
+        (
+            ("error message", "traceback", "exception", "error log", "logs"),
+            "Exact error message or relevant logs",
+        ),
+        (
+            ("version", "windows", "linux", "macos", "environment"),
+            "Application version and operating environment",
+        ),
+        (
+            ("expected behavior", "actual behavior", "expected result"),
+            "Expected behavior compared with actual behavior",
+        ),
     ]
     missing = [
         description for keywords, description in checks
@@ -125,22 +133,24 @@ def build_fallback_report(issue: dict) -> str:
             "- No omissions detected by the basic keyword checklist; "
             "manual review is still needed."
         )
-    lines.extend([
-        "",
-        "## Suggested next action",
-        "Confirm reproducibility, user impact, and the missing diagnostic "
-        "details before deciding on severity or a fix.",
-        "",
-        "## Draft maintainer reply",
-        "Thanks for reporting this. Could you share the steps to reproduce "
-        "the issue, the exact error or relevant logs, your application "
-        "version and environment, and what you expected to happen versus "
-        "what actually happened?",
-        "",
-        "---",
-        "**Method:** Deterministic checklist. This report was not generated "
-        "by an AI model.",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Suggested next action",
+            "Confirm reproducibility, user impact, and the missing diagnostic "
+            "details before deciding on severity or a fix.",
+            "",
+            "## Draft maintainer reply",
+            "Thanks for reporting this. Could you share the steps to reproduce "
+            "the issue, the exact error or relevant logs, your application "
+            "version and environment, and what you expected to happen versus "
+            "what actually happened?",
+            "",
+            "---",
+            "**Method:** Deterministic checklist. This report was not generated "
+            "by an AI model.",
+        ]
+    )
     return "\n".join(lines)
 
 
