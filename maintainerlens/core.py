@@ -1,4 +1,5 @@
 """Core issue retrieval, local-model inference and deterministic triage helpers."""
+
 from __future__ import annotations
 
 import json
