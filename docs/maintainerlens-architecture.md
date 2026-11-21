@@ -1,49 +1,45 @@
-# Graph Report - MaintainerLens  (2026-10-22)
+# MaintainerLens architecture
 
-## Corpus Check
-- cluster-only mode — file stats not available
+## Overview
 
-## Summary
-- 14 nodes · 16 edges · 4 communities (0 shown, 4 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
-- Token cost: 0 input · 0 output
+MaintainerLens separates its Streamlit presentation layer from issue retrieval, local-model inference and fallback report generation.
 
-## Graph Freshness
-- Built from commit: `a1443275`
-- Run `git rev-parse HEAD` and compare to check if the graph is stale.
-- Run `graphify update .` after code changes (no API cost).
+## Components
 
-## Community Hubs (Navigation)
-- json
-- fetch_github_issue
-- build_fallback_report
+### Streamlit interface — `streamlit_app.py`
 
-## God Nodes (most connected - your core abstractions)
-1. `fetch_github_issue()` - 4 edges
-2. `run_local_model()` - 3 edges
-3. `build_fallback_report()` - 2 edges
-4. `Ask a locally running Ollama model to analyze an issue.` - 1 edges
-5. `Retrieve a public GitHub issue using the GitHub REST API.` - 1 edges
-6. `Produce a rule-based checklist, not an AI-generated diagnosis.` - 1 edges
+Collects an issue URL or pasted report, exposes Ollama endpoint/model settings, manages the current result in Streamlit session state, and renders/downloads the Markdown report.
 
-## Surprising Connections (you probably didn't know these)
-- `fetch_github_issue()` --calls--> `json`  [EXTRACTED]
-  streamlit_app.py →   _Bridges community 2 → community 1_
+### Core module — `maintainerlens/core.py`
 
-## Import Cycles
-- None detected.
+- `parse_github_issue_url`: validates canonical HTTPS GitHub issue URLs.
+- `fetch_github_issue`: retrieves public issue metadata and normalizes it into a stable internal record.
+- `run_local_model`: calls an Ollama-compatible `/api/generate` endpoint and validates the response.
+- `build_fallback_report`: produces a deterministic missing-information checklist when model inference is unavailable.
 
-## Communities (4 total, 4 thin omitted)
+The core module does not import Streamlit, allowing tests to exercise its behaviour without starting a UI server.
 
-## Knowledge Gaps
-- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+### Test suite — `tests/test_core.py`
 
-## Suggested Questions
-_Questions this graph is uniquely positioned to answer:_
+Covers canonical and rejected issue URLs, normalized GitHub response records, rejection of pull-request payloads, fallback report contents, invalid model endpoints, and the Ollama request/response contract.
 
-- **Why does `fetch_github_issue()` connect `fetch_github_issue` to `streamlit_app.py`, `json`?**
-  _High betweenness centrality (0.160) - this node is a cross-community bridge._
-- **Why does `run_local_model()` connect `json` to `streamlit_app.py`?**
-  _High betweenness centrality (0.154) - this node is a cross-community bridge._
-- **Why does `build_fallback_report()` connect `build_fallback_report` to `streamlit_app.py`?**
-  _High betweenness centrality (0.154) - this node is a cross-community bridge._
+## Data flow
+
+1. The user supplies a public GitHub issue URL or a pasted issue report.
+2. URL input is validated before the GitHub API request.
+3. GitHub data is normalized into a compact issue object.
+4. MaintainerLens attempts local model inference.
+5. If model inference fails, a deterministic fallback report is generated.
+6. The result is shown for human review and can be downloaded as Markdown.
+
+## Trust boundaries
+
+- Issue descriptions and model responses are treated as untrusted content.
+- The model is instructed not to follow instructions embedded in issue text.
+- No GitHub write token is configured or used; the application does not post comments or modify issues.
+- The model endpoint is configurable, so deployments exposed to untrusted users should restrict outbound network access and add application authentication.
+- Fallback priority flags are keyword-based and are not security or severity assessments.
+
+## Extension points
+
+Potential future improvements include structured output validation, GitHub App authentication with narrowly scoped permissions, configurable issue-quality checks, repository-specific templates, and an optional maintainer approval workflow.
