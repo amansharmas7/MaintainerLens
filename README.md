@@ -1,118 +1,124 @@
-﻿# MaintainerLens
+# MaintainerLens
 
-AI-assisted GitHub issue triage for open-source maintainers.
+**AI-assisted GitHub issue triage for open-source maintainers.**
 
-## Problem
+MaintainerLens turns incomplete bug reports into structured triage notes. It helps maintainers identify missing diagnostic details, review possible impact, and prepare a useful response without handing control of the repository to an automated agent.
 
-Open-source maintainers spend time investigating incomplete bug reports that lack reproduction steps, error logs, environment details, or expected behavior.
+## What it does
 
-## Solution
+- Accepts a public GitHub issue URL or a pasted issue report.
+- Retrieves public issue details through the GitHub REST API.
+- Checks for commonly missing details such as reproduction steps, logs, environment, and expected behaviour.
+- Uses a locally running Ollama model for AI-assisted analysis.
+- Falls back to a clearly labelled deterministic checklist when model inference is unavailable.
+- Produces a Markdown report with evidence, missing information, a priority suggestion, and a draft maintainer reply.
+- Lets maintainers download the report as Markdown.
 
-MaintainerLens analyzes public GitHub issues or pasted reports, identifies missing diagnostic information, suggests triage priorities, and drafts maintainer replies.
+**Human-in-the-loop by design:** MaintainerLens does not post comments, change labels, or modify repositories. Priority suggestions are prompts for human review, not authoritative severity decisions.
 
-## Features
+## Technology
 
-- Retrieve public GitHub issues through the GitHub REST API.
-- Analyze pasted issue descriptions.
-- Identify potentially missing diagnostic information.
-- Generate triage reports and maintainer reply drafts.
-- Integrate Gemma 4 Cloud through Ollama.
-- Offer a clearly labelled rule-based fallback if AI inference fails.
-- Download reports as Markdown.
-- Keep maintainers in control: no automatic GitHub replies or repository modifications.
-
-## Technology stack
-
-- Python
+- Python 3.11+
 - Streamlit
 - GitHub REST API
-- Ollama
-- Gemma 4 Cloud
+- Ollama-compatible local model endpoint
 
 ## Requirements
 
-- Python 3.11+
-- Ollama installed and signed in for cloud inference
-- Internet access for GitHub and cloud model requests
+- Python 3.11 or newer
+- Internet access to retrieve public GitHub issues
+- Ollama installed and running for AI-assisted analysis
+- A model available to the configured Ollama instance
+
+The application can still produce a rule-based report when Ollama is unavailable.
 
 ## Run locally
 
-Create a virtual environment:
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/amansharmas7/MaintainerLens.git
+cd MaintainerLens
+```
+
+### 2. Create and activate a virtual environment
+
+**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+**macOS / Linux**
 
-```powershell
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Sign in to Ollama if needed:
+### 4. Start the app
 
-```powershell
-ollama signin
+```bash
+python -m streamlit run streamlit_app.py
 ```
 
-Run the dashboard:
+Open the local address printed by Streamlit (normally http://localhost:8501).
 
-```powershell
-python -m streamlit run .\streamlit_app.py
+## Configure Ollama
+
+The sidebar lets you set the Ollama base URL and model name. Defaults can also be configured with environment variables:
+
+- `OLLAMA_URL` — Ollama API base URL (default: `http://127.0.0.1:11434`)
+- `OLLAMA_MODEL` — model name to send to Ollama (default: `gemma4:e2b`)
+
+Make sure the selected model is available to the Ollama instance. You can use a local model or an Ollama-supported cloud model, depending on your account and configuration.
+
+## Use it
+
+1. Paste a public GitHub issue URL, or paste the issue description.
+2. Choose the Ollama base URL and model in the sidebar.
+3. Select **Analyze issue**.
+4. Review the evidence, missing-information checklist, and draft reply.
+5. Download the report as a Markdown file.
+
+## Project structure
+
+```text
+.
+├── streamlit_app.py
+├── requirements.txt
+├── docs/
+│   ├── maintainerlens-architecture.md
+│   └── maintainerlens-demo.png
+└── .github/
+    ├── ISSUE_TEMPLATE/
+    └── workflows/
 ```
 
-Open the local URL printed by Streamlit, typically http://localhost:8501.
+## Development checks
 
-In the sidebar, select `gemma4:cloud` for cloud-based AI analysis.
+A lightweight GitHub Actions workflow compiles the Streamlit application on pushes and pull requests. Run the same syntax check locally:
 
-## Usage
+```bash
+python -m compileall -q streamlit_app.py
+```
 
-1. Enter a public GitHub issue URL or paste issue details.
-2. Select the Ollama model.
-3. Click Analyze issue.
-4. Review the report, evidence, missing information, and reply draft.
-5. Download the report as Markdown.
+## Responsible use and limitations
 
-## Limitations
-
-AI-generated priorities and suggestions require maintainer review. If AI inference is unavailable, the application identifies its rule-based fallback as non-AI.
-
-## Security
-
-Do not enter passwords, API keys, connection URLs containing keys, or private repository information. Never commit secrets to GitHub.
+- Only public GitHub issue URLs are supported by the current issue fetcher.
+- Unauthenticated GitHub API requests are subject to GitHub's public rate limits.
+- The fallback report is keyword-based and must not be treated as an AI diagnosis.
+- Model output can be incomplete or incorrect; verify suggestions before acting on them.
+- Do not paste passwords, access tokens, private issue contents, personal data, or other secrets.
 
 ## License
 
-MIT. See LICENSE.
-
-## Demo
-
-MaintainerLens analyzes pasted bug reports or public GitHub issues and generates a triage report.
-
-![MaintainerLens demo](docs/maintainerlens-demo.png)
-
-## Architecture
-
-```mermaid
-flowchart TD
-    A["GitHub issue or pasted report"] --> B["Streamlit dashboard"]
-    B --> C["Python issue processing"]
-    C --> D["GitHub REST API"]
-    C --> E["Ollama API"]
-    E --> F["Gemma 4 Cloud"]
-    F --> G["AI-generated triage report"]
-    G --> B
-    C --> H["Rule-based fallback"]
-    H --> B
-```
-
-## Workflow
-
-1. Provide a public GitHub issue URL or paste issue details.
-2. Retrieve issue metadata when a URL is supplied.
-3. Analyze the report using Gemma 4 Cloud through Ollama.
-4. Review evidence, missing information, priority suggestions, and the drafted maintainer reply.
-5. Download the report as Markdown.
-
-AI suggestions require maintainer review. The application does not automatically post replies or modify repositories.
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
