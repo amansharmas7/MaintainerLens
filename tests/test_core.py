@@ -73,7 +73,8 @@ def test_fetch_github_issue_maps_github_payload_to_stable_schema():
 
 
 def test_fetch_github_issue_rejects_pull_request_api_payload():
-    response = BytesIO(json.dumps({"pull_request": {}, "title": "Not an issue"}).encode())
+    payload = json.dumps({"pull_request": {}, "title": "Not an issue"}).encode()
+    response = BytesIO(payload)
     response.headers = {}
     with patch("maintainerlens.core.urlopen") as mocked:
         mocked.return_value.__enter__.return_value = response
