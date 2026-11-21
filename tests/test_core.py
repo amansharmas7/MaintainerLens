@@ -83,11 +83,13 @@ def test_fetch_github_issue_rejects_pull_request_api_payload():
 
 
 def test_fallback_report_lists_missing_diagnostic_details_and_disclaims_ai():
-    report = build_fallback_report({
-        "title": "App crashes",
-        "body": "It stopped working.",
-        "url": "https://github.com/acme/app/issues/1",
-    })
+    report = build_fallback_report(
+        {
+            "title": "App crashes",
+            "body": "It stopped working.",
+            "url": "https://github.com/acme/app/issues/1",
+        }
+    )
     assert "Steps to reproduce the problem" in report
     assert "Exact error message or relevant logs" in report
     assert "Priority suggestion" in report
@@ -95,10 +97,12 @@ def test_fallback_report_lists_missing_diagnostic_details_and_disclaims_ai():
 
 
 def test_fallback_report_flags_potential_impact_without_claiming_severity():
-    report = build_fallback_report({
-        "title": "Production data loss",
-        "body": "Users report data corruption.",
-    })
+    report = build_fallback_report(
+        {
+            "title": "Production data loss",
+            "body": "Users report data corruption.",
+        }
+    )
     assert "Potentially high impact" in report
     assert "not a severity determination" in report
 
