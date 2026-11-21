@@ -1,4 +1,4 @@
-name: Python checks
+name: Python quality checks
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  syntax:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -22,10 +22,21 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install application and development dependencies
+        run: python -m pip install -r requirements-dev.txt
 
-      - name: Compile application
-        run: python -m compileall -q streamlit_app.py
+      - name: Compile Python sources
+        run: python -m compileall -q maintainerlens tests streamlit_app.py
+
+      - name: Lint core and tests
+        run: ruff check maintainerlens tests
+
+      - name: Verify formatting
+        run: ruff format --check maintainerlens tests
+
+      - name: Run unit tests
+        run: pytest
