@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import re
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -157,7 +156,9 @@ def run_local_model(issue: dict, base_url: str, model_name: str) -> str:
         or parsed.query
         or parsed.fragment
     ):
-        raise ValueError("Enter a valid Ollama base URL without embedded credentials or query parameters.")
+        raise ValueError(
+            "Enter a valid Ollama base URL without embedded credentials or query parameters."
+        )
     if not model_name.strip():
         raise ValueError("Enter an Ollama model name.")
 
