@@ -171,7 +171,7 @@ def test_fallback_report_does_not_treat_substrings_as_evidence():
     report = build_fallback_report(
         {
             "title": "Dialog catalogue issue",
-            "body": "The dialog opens slowly in the catalogue.",
+            "body": "The dialog opens slowly in the catalogue. Expected behavior is to open faster.",
         }
     )
     assert "error details" in report

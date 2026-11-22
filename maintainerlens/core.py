@@ -151,8 +151,7 @@ _DIAGNOSTIC_CHECKS = (
     ),
     (
         "expected versus actual behaviour",
-        r"\bexpected (?:behavior|behaviour|result)\b|\bactual (?:behavior|behaviour|result)\b|"
-        r"\bexpected\b.{0,100}\b(?:actual|instead|but)\b|\bactual\b.{0,100}\b(?:expected|instead|but)\b",
+        r"\bexpected\b.{0,120}\bactual\b|\bactual\b.{0,120}\bexpected\b",
     ),
 )
 
