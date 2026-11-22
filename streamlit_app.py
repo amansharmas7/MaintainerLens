@@ -1,9 +1,16 @@
+import json
 import os
 from urllib.error import HTTPError, URLError
 
 import streamlit as st
 
-from maintainerlens.core import build_fallback_report, fetch_github_issue, run_local_model
+from maintainerlens.core import (
+    build_fallback_report,
+    fetch_github_issue,
+    format_ai_report,
+    run_local_model,
+    validate_issue_text,
+)
 
 st.set_page_config(
     page_title="MaintainerLens",
@@ -12,12 +19,7 @@ st.set_page_config(
 )
 
 DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e2b")
-DEFAULT_OLLAMA_URL = os.environ.get(
-    "OLLAMA_URL", "http://127.0.0.1:11434"
-)
-
-
-# ---------- Dashboard presentation ----------
+DEFAULT_OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 
 st.markdown(
     """
@@ -53,12 +55,8 @@ st.caption(
 
 with st.sidebar:
     st.header("AI configuration")
-    ollama_url = st.text_input(
-        "Ollama base URL", value=DEFAULT_OLLAMA_URL
-    )
-    model_name = st.text_input(
-        "Local model name", value=DEFAULT_MODEL
-    )
+    ollama_url = st.text_input("Ollama base URL", value=DEFAULT_OLLAMA_URL)
+    model_name = st.text_input("Local model name", value=DEFAULT_MODEL)
     st.info(
         "AI analysis requires Ollama to be installed, running, and "
         "configured with the selected model."
@@ -69,12 +67,10 @@ left, right = st.columns([1, 1], gap="large")
 
 with left:
     st.subheader("1. Provide an issue")
-
     issue_url = st.text_input(
         "Public GitHub issue URL",
         placeholder="https://github.com/owner/repo/issues/123",
     )
-
     issue_text = st.text_area(
         "Or paste issue details",
         placeholder=(
@@ -83,11 +79,7 @@ with left:
         ),
         height=190,
     )
-
-    analyze = st.button(
-        "Analyze issue →", type="primary", use_container_width=True
-    )
-
+    analyze = st.button("Analyze issue →", type="primary", use_container_width=True)
     st.caption(
         "If a GitHub URL is provided, the app retrieves the issue through "
         "the GitHub REST API. Otherwise, it analyzes the pasted text."
@@ -95,16 +87,16 @@ with left:
 
 with right:
     st.subheader("2. Triage report")
-
     if analyze:
         try:
             if issue_url.strip():
                 with st.spinner("Retrieving issue from GitHub..."):
                     issue = fetch_github_issue(issue_url)
-            elif issue_text.strip():
+            else:
+                cleaned_text = validate_issue_text(issue_text)
                 issue = {
                     "title": "Pasted issue report",
-                    "body": issue_text.strip(),
+                    "body": cleaned_text,
                     "url": "Pasted by user",
                     "state": "unknown",
                     "labels": [],
@@ -112,17 +104,13 @@ with right:
                     "repository": "Not supplied",
                     "author": "Not supplied",
                 }
-            else:
-                raise ValueError(
-                    "Enter a public GitHub issue URL or paste issue details."
-                )
 
             ai_error = None
-
             with st.spinner("Attempting local model analysis..."):
                 try:
-                    report = run_local_model(issue, ollama_url, model_name)
-                    mode = f"Local model: {model_name}"
+                    model_report = run_local_model(issue, ollama_url, model_name)
+                    report = format_ai_report(model_report, model_name)
+                    mode = f"AI-assisted (local Ollama: {model_name})"
                 except Exception as exc:
                     ai_error = str(exc)
                     report = build_fallback_report(issue)
@@ -153,20 +141,16 @@ with right:
             st.error(f"Unexpected error: {exc}")
 
     result = st.session_state.get("maintainerlens_result")
-
     if result:
         st.success(f"Analysis mode: {result['mode']}")
-
         if result["ai_error"]:
             with st.expander("Why wasn't the AI model used?"):
                 st.write(result["ai_error"])
                 st.write(
-                    "The report below uses a rule-based checklist, not "
-                    "an AI model."
+                    "The report below uses a deterministic, rule-based checklist, "
+                    "not an AI model."
                 )
-
         st.markdown(result["report"])
-
         st.download_button(
             "Download triage report",
             data=result["report"],
@@ -174,13 +158,12 @@ with right:
             mime="text/markdown",
             use_container_width=True,
         )
-
         with st.expander("Retrieved issue data"):
             st.json(result["issue"])
     else:
         st.info(
-            "Your summary, missing-information checklist, priority "
-            "suggestion, and reply draft will appear here."
+            "Your summary, missing-information checklist, priority suggestion, "
+            "and reply draft will appear here."
         )
 
 st.divider()
