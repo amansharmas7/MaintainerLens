@@ -288,7 +288,11 @@ def run_local_model(issue: dict, base_url: str, model_name: str) -> str:
         "ISSUE DATA:\n" + json.dumps(issue, ensure_ascii=False)
     )
     payload = json.dumps(
-        {"model": model_name.strip(), "prompt": prompt, "stream": False}
+        {
+            "model": model_name.strip(),
+            "prompt": prompt,
+            "stream": False,
+        }
     ).encode("utf-8")
     request = Request(
         clean_url + "/api/generate",
