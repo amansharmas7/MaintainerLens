@@ -169,9 +169,7 @@ def test_fallback_report_detects_diagnostic_evidence_with_word_boundaries():
 
 def test_fallback_report_does_not_treat_substrings_as_evidence():
     issue_body = "The dialog opens slowly in the catalogue. Expected behavior is to open faster."
-    report = build_fallback_report(
-        {"title": "Dialog catalogue issue", "body": issue_body}
-    )
+    report = build_fallback_report({"title": "Dialog catalogue issue", "body": issue_body})
     assert "error details" in report
     assert "environment and version" in report
     assert "Diagnostic signals detected: None detected" in report
